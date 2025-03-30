@@ -7,3 +7,11 @@
 This package contains some helper functions to streamling extracting geometrical coordinates from geometries/points to simplify plotting over earth using `PlotlyBase.jl` and its derivatives.
 
 This package might in the future also be used to provide a common or closely related API to also simplify plotting via Makie.jl or Cesium.js
+
+## Usage
+
+The main user facing functions are:
+- `extract_latlon_coords`: Used to return a NamedTuple which contains just two fields `lat` and `lon` which are vectors that can be used for use in `scattergeo` traces.
+- `geo_plotly_trace`: Which can be used to create either a `scattergeo` or `scatter` trace for plotting geometries/points and relies internally on `extract_latlon_coords`.
+
+Check the docstrings for more details.
