@@ -8,6 +8,7 @@ Specify whether `extract_latlon_coords!` should potentially add artificial point
 - `:NONE` will not add artificial points
 =#
 const OVERSAMPLE_LINES = ScopedValue{Symbol}(:NONE)
+const PLOT_STRAIGHT_LINES = OVERSAMPLE_LINES
 #= 
 Specify whether to close the vector of points by repeating the first point at the end of the vector.
 =#
