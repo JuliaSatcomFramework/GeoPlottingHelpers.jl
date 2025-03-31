@@ -72,17 +72,20 @@ end
 @testitem "geo_plotly_trace" setup = [setup_api] begin
     b1 = f_box(LatLon(10, 20), LatLon(30, 40))
 
-    tr = geo_plotly_trace(b1; mode = "lines")
+    tr = geo_plotly_trace(b1)
     @test tr isa GenericTrace
     @test tr.type === "scattergeo"
     @test eltype(tr.lat) == Float32
     @test tr.mode === "lines"
 
-    tr = geo_plotly_trace(scatter, b1)
+    tr = geo_plotly_trace(scatter, b1; mode = "markers")
     @test tr.type === "scatter"
+    @test tr.mode === "markers"
 
-    tr = geo_plotly_trace(Float64, scattergeo, b1)
+    pts = boundary(b1) |> vertices
+    tr = geo_plotly_trace(Float64, scattergeo, pts)
     @test eltype(tr.lat) == Float64
+    @test isempty(tr.mode) # We don't have a default for vectors of points
 
     @test_throws "The `tracefunc` must be either `scatter` or `scattergeo`" geo_plotly_trace(heatmap, b1)
 end
