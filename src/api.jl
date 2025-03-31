@@ -139,3 +139,18 @@ Extracts the lat/lon coordinates from `item` using `extract_latlon_coords(T, ite
 - All the keyword arguments provided are forwarded to the `tracefunc` function.
 """
 function geo_plotly_trace end
+
+"""
+    geo_plotly_trace_default_kwargs(item, tracefunc)
+
+Returns a NamedTuple with the default keyword arguments to feed the `tracefunc` function for the type of `item`.
+The `tracefunc` argument is mandatory when adding methods to this function but is only used for dispatch.
+
+This is used to have some default item specific keyword arguments when calling `geo_plotly_trace`.
+!!! note
+    The default keyword arguments specified with this function can still be overridden by the `kwargs...` passed directly to `geo_plotly_trace`.
+"""
+function geo_plotly_trace_default_kwargs(item, tracefunc)
+    @nospecialize
+    return (;)
+end

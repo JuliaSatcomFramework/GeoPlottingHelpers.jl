@@ -1,17 +1,18 @@
 module PlotlyBaseExt
 
-using GeoPlottingHelpers
+using GeoPlottingHelpers: GeoPlottingHelpers, geo_plotly_trace, geo_plotly_trace_default_kwargs, extract_latlon_coords
 using PlotlyBase
 
 function GeoPlottingHelpers.geo_plotly_trace(T::Type{<:AbstractFloat}, tracefunc::Function, item; kwargs...)
+    tracefunc in (scattergeo, scatter) || throw(ArgumentError("The `tracefunc` must be either `scatter` or `scattergeo` from PlotlyBase, while $(tracefunc) was provided"))
+    default_kwargs = geo_plotly_trace_default_kwargs(item, tracefunc)
     (;lon, lat) = extract_latlon_coords(T, item)
-    if tracefunc == scattergeo
-        tracefunc(; lat, lon, kwargs...)
-    elseif tracefunc == scatter
-        tracefunc(; x = lon, y = lat, kwargs...)
+    latlon_kwargs = if tracefunc == scattergeo
+        (; lat, lon)
     else
-        throw(ArgumentError("The `tracefunc` must be either `scatter` or `scattergeo` from PlotlyBase, while $(tracefunc) was provided"))
+        (; x = lon, y = lat)
     end
+    tracefunc(; latlon_kwargs..., default_kwargs..., kwargs...)
 end
 GeoPlottingHelpers.geo_plotly_trace(item; kwargs...) = geo_plotly_trace(scattergeo, item; kwargs...)
 GeoPlottingHelpers.geo_plotly_trace(tracefunc::Function, item; kwargs...) = geo_plotly_trace(Float32, tracefunc, item; kwargs...)
