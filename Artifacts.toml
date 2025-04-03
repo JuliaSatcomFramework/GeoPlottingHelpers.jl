@@ -1,0 +1,6 @@
+[borders_110m]
+git-tree-sha1 = "f7ea834ce69b56dcc96faad4b44c41be19b1ebe9"
+
+    [[borders_110m.download]]
+    sha256 = "ec3f10f6dc214b0d8dd05bdb3dc179d2228a935c6de0a91c8eb82941aae9f77c"
+    url = "https://github.com/JuliaSatcomFramework/GeoPlottingHelpers.jl/releases/download/v0.1.2/borders_110m.tar.gz"

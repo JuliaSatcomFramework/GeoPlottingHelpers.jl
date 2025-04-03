@@ -1,6 +1,8 @@
 module GeoPlottingHelpers
 
 using ScopedValues: ScopedValues, ScopedValue
+using TOML
+using Artifacts: Artifacts, @artifact_str
 
 include("constants.jl")
 include("api.jl")
