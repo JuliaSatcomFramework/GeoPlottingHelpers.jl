@@ -109,6 +109,7 @@ end
     @test tr.line_width == 2
 
     @test_logs (:warn, r"not found") get_borders_trace_110(scatter; admin = "spain")
+    @test_logs (:warn, r"can't be extracted") get_borders_trace_110(scatter; admin = "CoastLines")
 end
 
 @testitem "get_coastlines_trace_110" setup = [setup_api] begin

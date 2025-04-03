@@ -210,11 +210,17 @@ function get_borders_trace_110(tracefunc::Function; admin = nothing, kwargs...)
     else
         admin
     end
-    f(key) = get(COUNTRIES_BORDERS_COASTLINES_110, key) do
-        @warn "Country `$key` not found in the list of countries, remember that keys are case sensitive"
-        return nothing
+    function f(key) 
+        if key === "CoastLines"
+            @warn "You provided the `CoastLines` key but coastlines can't be extracted using `get_borders_trace_110`, use `get_coastlines_trace_110` instead"
+            return nothing
+        end
+        return get(COUNTRIES_BORDERS_COASTLINES_110, key) do
+            @warn "Country `$key` not found in the list of countries, remember that keys are case sensitive"
+            return nothing
+        end
     end
-    selected = filter(!isnothing, [f(key) for key in admins if key !== "CoastLines"])
+    selected = filter(!isnothing, [f(key) for key in admins])
     return geo_plotly_trace(tracefunc, selected; BORDERS_DEFAULT_KWARGS..., kwargs...)
 end
 
