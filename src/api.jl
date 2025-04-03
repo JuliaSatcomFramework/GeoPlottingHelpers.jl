@@ -110,6 +110,16 @@ function extract_latlon_coords!(lat::Vector{T}, lon::Vector{T}, v::AbstractVecto
     return nothing
 end
 
+# This is useful to join together outputs of extract_latlon_coords
+function extract_latlon_coords!(lat::Vector{T}, lon::Vector{T}, v::Union{@NamedTuple{lat::Vector{F}, lon::Vector{F}}, @NamedTuple{lon::Vector{F}, lat::Vector{F}}}) where {T<:AbstractFloat, F<:AbstractFloat}
+    if should_insert_nan() && !isempty(lat) && !isempty(lon)
+        extract_latlon_coords!(lat, lon, (NaN, NaN))
+    end
+    append!(lat, v.lat)
+    append!(lon, v.lon)
+    return nothing
+end
+
 """
     extract_latlon_coords([T::Type{<:AbstractFloat} = Float32], item)
 
@@ -153,4 +163,95 @@ This is used to have some default item specific keyword arguments when calling `
 function geo_plotly_trace_default_kwargs(item, tracefunc)
     @nospecialize
     return (;)
+end
+
+"""
+    get_borders_trace_110(tracefunc::Function; admin = nothing, kwargs...)
+
+Returns a PlotlyBase trace (using [`geo_plotly_trace`](@ref)) for the borders of the countries obtained from the NaturalEarth dataset with 110m resolution.
+By default this returns a trace with borders of all the countries, but the list
+of countries to consider can be specified using the `admin` keyword argument.
+
+## Arguments
+- `tracefunc::Function`: The function to use to construct the trace, it can only be `scatter` or `scattergeo` and is forwarded to `geo_plotly_trace`. Defaults to `scattergeo`.
+
+## Keyword Arguments
+- `admin`: If provided as a vector of `String` objects, it will be used to downselect the countries to plot in the trace interpreting the elements of `admin` as country admin names to keep (case sensitive).
+- `kwargs...`: All the remaining keyword arguments are forwarded to the `geo_plotly_trace` function used internally.
+
+## Note
+The resulting trace will have the following default attributes (which can be overridden using the `kwargs...` argument):
+- `mode = "lines"`
+- `line_width = 1`
+- `line_color = "black"`
+- `showlegend = false`
+- `hoverinfo = "none"`
+
+## Examples
+```julia
+using GeoPlottingHelpers
+using PlotlyBase
+
+# Plot the borders of all countries, with blue as linecolor using a `scattergeo` trace
+get_borders_trace_110(; line_color = "blue") |> PlotlyBase.Plot
+
+# Plot the borders on a plain `scatter` trace just for italy and france
+get_borders_trace_110(scatter; admin = ["Italy", "France"]) |> PlotlyBase.Plot
+```
+
+See also: [`geo_plotly_trace`](@ref), [`get_coastlines_trace_110`](@ref)
+"""
+function get_borders_trace_110(tracefunc::Function; admin = nothing, kwargs...)
+    ensure_borders_loaded() # Make sure the Dict is loaded
+    admins = if admin === nothing
+        keys(COUNTRIES_BORDERS_COASTLINES_110)
+    elseif admin isa AbstractString
+        (admin,)
+    else
+        admin
+    end
+    f(key) = get(COUNTRIES_BORDERS_COASTLINES_110, key) do
+        @warn "Country `$key` not found in the list of countries, remember that keys are case sensitive"
+        return nothing
+    end
+    selected = filter(!isnothing, [f(key) for key in admins if key !== "CoastLines"])
+    return geo_plotly_trace(tracefunc, selected; BORDERS_DEFAULT_KWARGS..., kwargs...)
+end
+
+"""
+    get_coastlines_trace_110(tracefunc::Function; kwargs...)
+
+Returns a PlotlyBase trace (using [`geo_plotly_trace`](@ref)) for the coastlines of the Earth obtained from the NaturalEarth dataset with 110m resolution.
+
+## Arguments
+- `tracefunc::Function`: The function to use to construct the trace, it can only be `scatter` or `scattergeo` and is forwarded to `geo_plotly_trace`. Defaults to `scattergeo`.
+
+## Keyword Arguments
+- `kwargs...`: All the remaining keyword arguments are forwarded to the `geo_plotly_trace` function used internally.
+
+## Note
+The resulting trace will have the following default attributes (which can be overridden using the `kwargs...` argument):
+- `mode = "lines"`
+- `line_width = 1`
+- `line_color = "black"`
+- `showlegend = false`
+- `hoverinfo = "none"`
+
+## Examples
+```julia
+using GeoPlottingHelpers
+using PlotlyBase
+
+# Plot the coastlines using a `scattergeo` trace and a red line color
+get_coastlines_trace_110(; line_color = "red") |> PlotlyBase.Plot
+
+# Plot the coastlines on a plain `scatter` trace
+get_coastlines_trace_110(scatter) |> PlotlyBase.Plot
+```
+
+See also: [`geo_plotly_trace`](@ref), [`get_borders_trace_110`](@ref)
+"""
+function get_coastlines_trace_110(tracefunc::Function; kwargs...)
+    ensure_borders_loaded() # Make sure the Dict is loaded
+    return geo_plotly_trace(tracefunc, COUNTRIES_BORDERS_COASTLINES_110["CoastLines"]; BORDERS_DEFAULT_KWARGS..., kwargs...)
 end

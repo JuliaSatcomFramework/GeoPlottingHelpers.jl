@@ -89,3 +89,31 @@ end
 
     @test_throws "The `tracefunc` must be either `scatter` or `scattergeo`" geo_plotly_trace(heatmap, b1)
 end
+
+@testitem "get_borders_trace_110" setup = [setup_api] begin
+    tr = get_borders_trace_110(; line_color = "blue")
+    @test tr isa GenericTrace
+    @test tr.type === "scattergeo"
+    @test tr.line_color == "blue"
+
+    tr = get_borders_trace_110(scatter; admin = ["Italy", "France"])
+    @test tr isa GenericTrace
+    @test tr.type === "scatter"
+    @test tr.mode === "lines"
+    @test tr.line_color == "black"
+
+    tr = get_borders_trace_110(scatter; admin = "Spain", line_width = 2)
+    @test tr isa GenericTrace
+    @test tr.type === "scatter"
+    @test tr.mode === "lines"
+    @test tr.line_width == 2
+
+    @test_logs (:warn, r"not found") get_borders_trace_110(scatter; admin = "spain")
+end
+
+@testitem "get_coastlines_trace_110" setup = [setup_api] begin
+    tr = get_coastlines_trace_110()
+    @test tr isa GenericTrace
+    @test tr.type === "scattergeo"
+    @test eltype(tr.lat) == Float32
+end

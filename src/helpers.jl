@@ -81,3 +81,16 @@ function line_plot_coords(start, stop)
         (f(n) for n in 0:(npts-1))
     end
 end
+
+# This function makes sure that the Dict with borders and coastlines has been loaded
+function ensure_borders_loaded(; force = false)
+    isempty(COUNTRIES_BORDERS_COASTLINES_110) || force || return
+    # We load the dictionary
+    toml_dict = TOML.parsefile(joinpath(artifact"borders_110m", "borders_110m.toml"))
+    for (key, value) in toml_dict
+        lat = map(Float32, value["lat"])
+        lon = map(Float32, value["lon"])
+        COUNTRIES_BORDERS_COASTLINES_110[key] = (; lat, lon)
+    end
+    return nothing
+end

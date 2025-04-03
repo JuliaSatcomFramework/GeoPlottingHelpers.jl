@@ -22,3 +22,6 @@ ScopedValue that contains the settings for `extract_latlon_coords!`. It is a Dic
 Check the docstring of [`with_settings`](@ref) for the possible keys accepted for this Dict.
 """
 const PLOT_SETTINGS = ScopedValue{Dict{Symbol, Any}}(Dict{Symbol, Any}())
+
+const COUNTRIES_BORDERS_COASTLINES_110 = Dict{String, @NamedTuple{lat::Vector{Float32}, lon::Vector{Float32}}}()
+const BORDERS_DEFAULT_KWARGS = (; mode = "lines", line_width = 1, line_color = "black", showlegend = false, hoverinfo = "none")
