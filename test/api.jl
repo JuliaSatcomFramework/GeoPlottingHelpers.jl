@@ -25,6 +25,10 @@ end
     @test to_raw_lonlat(map(todeg, nt1)) == (20, 10)
     @test to_raw_lonlat(map(todeg, nt2)) == (20, 10)
     @test to_raw_lonlat(map(todeg, (20, 10))) == (20, 10)
+
+    # Mixed inputs support
+    @test to_raw_lonlat((20, 10 * u"°")) == (20, 10)
+    @test to_raw_lonlat((deg2rad(20) * u"rad", 10 * u"°")) == (20, 10)
 end
 
 @testitem "extract_latlon_coords" setup = [setup_api] begin

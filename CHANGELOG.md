@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added support for `to_raw_lonlat` for the following inputs:
   - `NamedTuple` inputs with `lat` and `lon` fields (in either order)
-  - `Tuple` or `NamedTuple` inputs with angles from Unitful as values
+  - `Tuple` or `NamedTuple` inputs with angles from Unitful as values (also mixed, e.g. one Real and one Unitful value)
 
 ## [0.1.3] - 2025-06-29
 ### Added
