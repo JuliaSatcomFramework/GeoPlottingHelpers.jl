@@ -35,6 +35,9 @@ This function is used internally by other functions of `GeoPlottingHelpers` and 
 """
 to_raw_lonlat(lonlat::Tuple{Real,Real}) = lonlat
 
+# Additional helper methods
+to_raw_lonlat(lonlat::_LONLAT_NT{Tuple{Real,Real}}) = (lonlat.lon, lonlat.lat)
+
 """
     geom_iterable(item)
 
