@@ -3,6 +3,7 @@
     using CoordRefSystems
     using Meshes
     using GeoPlottingHelpers: with_settings
+    using Unitful
     f_box(l1, l2) = Box(Point(l1), Point(l2))
 end
 
@@ -12,6 +13,22 @@ end
     p = Point(ll)
     @test to_raw_lonlat(p) == (20, 10)
     @test to_raw_lonlat(Meshes.flat(p)) == (20, 10)
+
+    # We test NamedTuples
+    nt1 = (lat = 10, lon = 20)
+    nt2 = (lon = 20, lat = 10)
+    @test to_raw_lonlat(nt1) == (20, 10)
+    @test to_raw_lonlat(nt2) == (20, 10)
+
+    # We test Unitful
+    todeg(x) = x * u"°"
+    @test to_raw_lonlat(map(todeg, nt1)) == (20, 10)
+    @test to_raw_lonlat(map(todeg, nt2)) == (20, 10)
+    @test to_raw_lonlat(map(todeg, (20, 10))) == (20, 10)
+
+    # Mixed inputs support
+    @test to_raw_lonlat((20, 10 * u"°")) == (20, 10)
+    @test to_raw_lonlat((deg2rad(20) * u"rad", 10 * u"°")) == (20, 10)
 end
 
 @testitem "extract_latlon_coords" setup = [setup_api] begin

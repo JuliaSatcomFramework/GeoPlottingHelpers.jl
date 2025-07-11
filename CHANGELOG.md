@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+## [0.1.4] - 2025-07-11
+### Added
+- Added support for `to_raw_lonlat` for the following inputs:
+  - `NamedTuple` inputs with `lat` and `lon` fields (in either order)
+  - `Tuple` or `NamedTuple` inputs with angles from Unitful as values (also mixed, e.g. one Real and one Unitful value)
+
+## [0.1.3] - 2025-06-29
 ### Added
 - Added the `get_borders_trace_110` and `get_coastlines_trace_110` functions to easily create Plotly traces for the borders and coastlines of countries at 110m resolution.
 
