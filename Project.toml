@@ -12,11 +12,13 @@ TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
 CoordRefSystems = "b46f11dc-f210-4604-bfba-323c1ec968cb"
 Meshes = "eacbb407-ea5a-433e-ab97-5258b1ca43fa"
 PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5"
+Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 
 [extensions]
-CoordRefSystemsExt = "CoordRefSystems"
-MeshesExt = "Meshes"
-PlotlyBaseExt = "PlotlyBase"
+GeoPlottingHelpersCoordRefSystemsExt = "CoordRefSystems"
+GeoPlottingHelpersMeshesExt = "Meshes"
+GeoPlottingHelpersPlotlyBaseExt = "PlotlyBase"
+GeoPlottingHelpersUnitfulExt = "Unitful"
 
 [compat]
 Artifacts = "1"
@@ -25,4 +27,5 @@ Meshes = "0.52, 0.53"
 PlotlyBase = "0.8.20"
 ScopedValues = "1.3.0"
 TOML = "1.0.3"
+Unitful = "1"
 julia = "1.10"

@@ -1,4 +1,4 @@
-module PlotlyBaseExt
+module GeoPlottingHelpersPlotlyBaseExt
 
 using GeoPlottingHelpers: GeoPlottingHelpers, geo_plotly_trace, geo_plotly_trace_default_kwargs, extract_latlon_coords, get_borders_trace_110, get_coastlines_trace_110
 using PlotlyBase

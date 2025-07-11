@@ -1,4 +1,4 @@
-module CoordRefSystemsExt
+module GeoPlottingHelpersCoordRefSystemsExt
 
 using CoordRefSystems: CoordRefSystems, Cartesian2D, WGS84Latest, LatLon, raw
 using GeoPlottingHelpers

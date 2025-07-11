@@ -1,4 +1,4 @@
-module MeshesExt
+module GeoPlottingHelpersMeshesExt
 
 using Meshes
 using GeoPlottingHelpers
