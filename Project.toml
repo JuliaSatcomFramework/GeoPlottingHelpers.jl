@@ -1,7 +1,7 @@
 name = "GeoPlottingHelpers"
 uuid = "c20ae07a-79b5-4dbd-b2dc-f2e51386613e"
 authors = ["Alberto Mengali <disberd@gmail.com>"]
-version = "0.1.4"
+version = "0.1.5"
 
 [deps]
 Artifacts = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"

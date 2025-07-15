@@ -1,32 +1,4 @@
 """
-    with_settings(f, settings::Pair{Symbol, <:Any}...)
-
-Convenience function to set the `PLOT_SETTINGS` ScopedValue to a Dict created from the key-value pairs in `settings` and call `f` with that `PLOT_SETTINGS` set.
-
-The possible keys that can be provided as settings are:
-- `:INSERT_NAN => Bool`: Specify whether to insert NaN before each vector of points within the lat/lon vectors.
-- `:OVERSAMPLE_LINES => Symbol`: Specify whether `extract_latlon_coords!` should potentially add artificial points between each pair of input points in order to have lines appear straight on scattergeo plots. This can have a symbol and three valid values (In reality, every symbol that is not the first two will be treated as `:NONE`)
-  - `:NORMAL` will add artificial points only when necessary (when distance between points is too large) and will create lines that never cross the antimeridian. This is useful for example to plot Box geometries with large areas and have them still look like boxes.
-  - `:SHORT` will add artificial points like per `:NORMAL` but will also make sure the line drawn between the points is the shortest one (potentially crossing the antimeridian at 180° longitude).
-  - `:NONE` will not add artificial points
-- `:PLOT_STRAIGHT_LINES => Symbol`: This is just an alias for the `:OVERSAMPLE_LINES` key and they have the same effect. Note: `:OVERSAMPLE_LINES` has higher priority if both keys are provided.
-- `:CLOSE_VECTORS => Bool`: Specify whether to close any vector of points by repeating the first point at the end of the vector.
-
-This is essentially a convenience wrapper for:
-```julia
-Base.ScopedValues.with(GeoPlottingHelpers.PLOT_SETTINGS => Dict(settings...)) do
-    f()
-end
-```
-"""
-with_settings(f, settings::AbstractVector) = with_settings(f, settings...)
-function with_settings(f, settings::Pair{Symbol,<:Any}...)
-    ScopedValues.with(PLOT_SETTINGS => Dict(settings...)) do
-        f()
-    end
-end
-
-"""
     lon, lat = to_raw_lonlat(p)
 
 This function should take a single input representing a point on or around the Earth and returns a two Real numbers representing the longitude and latitude of the point expressed in degrees.
@@ -150,6 +122,10 @@ Extracts the lat/lon coordinates from `item` using `extract_latlon_coords(T, ite
 
 # Keyword Arguments
 - All the keyword arguments provided are forwarded to the `tracefunc` function.
+!!! note "Customize settings"
+    It is possible to customize the settings for how `extract_latlon_coords!` similarly to how it's done with `with_settings` by providing specific keywords to the [`geo_plotly_trace`](@ref) function (or to [`GeoPlottingHelpers.geo_plotly_trace_default_kwargs`](@ref)). The following keyword arguments are special and can be used for customizing or overriding settings:
+    - `settings_dict`: This needs to be a `Dict{Symbol, Any}` where valid keys are the same provided to [`with_settings`](@ref) and behave as if `with_settings` was called.
+    - `settings_nt`: This needs to be a `NamedTuple` where keys are again valid settings as per [`with_settings`](@ref), and the values are intended settings to be overridden compared to default ones. **Note that settings provided this way have lower priority than ones provided with either `with_settings` or with the `settings_dict` keyword argument.**
 """
 function geo_plotly_trace end
 
@@ -162,6 +138,13 @@ The `tracefunc` argument is mandatory when adding methods to this function but i
 This is used to have some default item specific keyword arguments when calling `geo_plotly_trace`.
 !!! note
     The default keyword arguments specified with this function can still be overridden by the `kwargs...` passed directly to `geo_plotly_trace`.
+
+!!! note "Customize settings"
+    It is possible to customize the settings for how `extract_latlon_coords!` similarly to how it's done with `with_settings` by providing specific keywords to the [`geo_plotly_trace`](@ref) function (or to [`GeoPlottingHelpers.geo_plotly_trace_default_kwargs`](@ref)). The following keyword arguments are special and can be used for customizing or overriding settings:
+    - `settings_dict`: This needs to be a `Dict{Symbol, Any}` where valid keys are the same provided to [`with_settings`](@ref) and behave as if `with_settings` was called.
+    - `settings_nt`: This needs to be a `NamedTuple` where keys are again valid settings as per [`with_settings`](@ref), and the values are intended settings to be overridden compared to default ones. **Note that settings provided this way have lower priority than ones provided with either `with_settings` or with the `settings_dict` keyword argument.**
+
+    The `geo_plotly_trace_default_kwargs` function should always use the `settings_nt` keyword argument when customizing settings so that explicitly provided settings given via `with_settings` takes precedence.
 """
 function geo_plotly_trace_default_kwargs(item, tracefunc)
     @nospecialize

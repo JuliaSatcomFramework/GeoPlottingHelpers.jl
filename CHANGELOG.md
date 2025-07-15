@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## [0.1.5] - 2025-07-15
+
+### Added
+- Added the possibility of customizing settings also per trace when calling `geo_plotly_trace` or via extending the `GeoPlottingHelpers.geo_plotly_trace_default_kwargs` argument. See docstrings for more details
+- Added a new settings `FORCE_ORIENTATION` to force orientation of points in `Meshes.Ring` to be counterclockwise or clockwise (defaults to keep as is). 
+  - This is useful because when filling polygons within plotly, rings with CCW winding (the defaults for outer rings according to GeoJSON) will actually fill towards the outside, so doing the opposite of what intended
+
 ## [0.1.4] - 2025-07-11
 ### Added
 - Added support for `to_raw_lonlat` for the following inputs:

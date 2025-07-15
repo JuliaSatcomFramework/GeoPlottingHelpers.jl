@@ -1,13 +1,14 @@
 
 # These are internal function used to parse the settings to customize the behavior of `extract_latlon_coords!`.
-should_insert_nan() = get(PLOT_SETTINGS[], :INSERT_NAN, INSERT_NAN[])
+should_insert_nan() = get(PLOT_SETTINGS[], :INSERT_NAN, NT_SETTINGS.INSERT_NAN[][])
 should_shorten_lines() = get(PLOT_SETTINGS[], :OVERSAMPLE_LINES) do 
-    get(PLOT_SETTINGS[], :PLOT_STRAIGHT_LINES, OVERSAMPLE_LINES[])
+    get(PLOT_SETTINGS[], :PLOT_STRAIGHT_LINES, NT_SETTINGS.OVERSAMPLE_LINES[][])
 end === :SHORT
 should_oversample_points() = get(PLOT_SETTINGS[], :OVERSAMPLE_LINES) do
-    get(PLOT_SETTINGS[], :PLOT_STRAIGHT_LINES, OVERSAMPLE_LINES[])
-end  ∈ (:SHORT, :NORMAL)
-should_close_vectors() = get(PLOT_SETTINGS[], :CLOSE_VECTORS, CLOSE_VECTORS[])
+    get(PLOT_SETTINGS[], :PLOT_STRAIGHT_LINES, NT_SETTINGS.OVERSAMPLE_LINES[][])
+end ∈ (:SHORT, :NORMAL)
+should_close_vectors() = get(PLOT_SETTINGS[], :CLOSE_VECTORS, NT_SETTINGS.CLOSE_VECTORS[][])
+force_orientation() = get(PLOT_SETTINGS[], :FORCE_ORIENTATION, NT_SETTINGS.FORCE_ORIENTATION[][])
 
 """
     is_valid_point(p)
