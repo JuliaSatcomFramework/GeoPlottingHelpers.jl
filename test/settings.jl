@@ -8,7 +8,7 @@ end
 @testitem "with_settings" setup = [setup_settings] begin
     r = rand(Ring; crs = LatLon)
     r_cw = orientation(r) === CW ? r : reverse(r) # Force this to be CW
-    r_ccw = reverse(r)
+    r_ccw = reverse(r_cw)
     ll = extract_latlon_coords(r_cw)
     # We test that by default the orientation is not forced
     llr = extract_latlon_coords(r_ccw)
