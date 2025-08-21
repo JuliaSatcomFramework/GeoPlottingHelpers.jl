@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.1.6] - 2025-08-21
+
+### Changed
+- Refactored the method of `extract_latlon_coords` taking a vector as input to be more consistent with the intended API.
+
+### Fixed
+- Fixed `extract_latlon_coords` not respecting various settings (e.g. `OVERSAMPLE_LINES`, `CLOSE_VECTORS`) when fed a vector of different types all satisfying the `is_valid_point` interface.
+  - This only used to work when checking `is_valid_point` on the `eltype` of the input vector, thus failing for vectors of heterogeneous types.
+
 ## [0.1.5] - 2025-07-15
 
 ### Added
