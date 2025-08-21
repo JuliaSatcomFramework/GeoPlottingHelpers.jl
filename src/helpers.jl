@@ -10,6 +10,9 @@ end ∈ (:SHORT, :NORMAL)
 should_close_vectors() = get(PLOT_SETTINGS[], :CLOSE_VECTORS, NT_SETTINGS.CLOSE_VECTORS[][])
 force_orientation() = get(PLOT_SETTINGS[], :FORCE_ORIENTATION, NT_SETTINGS.FORCE_ORIENTATION[][])
 
+# For should_insert_nan we also add a method that takes lat and lon vectors and also checks if they are empty
+should_insert_nan(lat::AbstractVector, lon::AbstractVector) = return should_insert_nan() && !isempty(lat) && !isempty(lon)
+
 """
     is_valid_point(p)
 
@@ -95,3 +98,27 @@ function ensure_borders_loaded(; force = false)
     end
     return nothing
 end
+
+# This is an helper struct to iterate over pair of consecutive elements within a vector, always return as last element the pair between the last and the first element
+struct PairIterator{V <: AbstractVector}
+    wrapped::V
+end
+
+# Iterator interface
+Base.length(iter::PairIterator) = length(iter.wrapped)
+Base.eltype(::PairIterator{V}) where V = return Pair{eltype(V), eltype(V)}
+
+function Base.iterate(iter::PairIterator, state = 1)
+    L = length(iter)
+    state <= L || return nothing
+    (; wrapped) = iter
+    item = if state == L
+        wrapped[end] => wrapped[1]
+    else
+        wrapped[state] => wrapped[state + 1]
+    end
+    return item, state + 1
+end
+
+
+
