@@ -105,7 +105,7 @@ struct PairIterator{V <: AbstractVector}
 end
 
 # Iterator interface
-Base.length(iter::PairIterator) = length(iter.wrapped)
+Base.length(iter::PairIterator) = return length(iter.wrapped)
 Base.eltype(::PairIterator{V}) where V = return Pair{eltype(V), eltype(V)}
 
 function Base.iterate(iter::PairIterator, state = 1)
