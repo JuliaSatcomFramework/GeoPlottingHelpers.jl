@@ -45,42 +45,41 @@ function extract_latlon_coords!(lat::Vector{T}, lon::Vector{T}, item) where T<:A
     return nothing
 end
 
-function _extract_latlon_coords_pointvector!(lat::Vector{T}, lon::Vector{T}, els::AbstractVector) where T<:AbstractFloat
-    if should_insert_nan() && !isempty(lat) && !isempty(lon)
-        extract_latlon_coords!(lat, lon, (NaN, NaN))
-    end
-    if should_oversample_points()
-        for i in eachindex(els)[1:end-1]
-            start = els[i]
-            stop = els[i+1]
-            for pt in line_plot_coords(start, stop)
-                extract_latlon_coords!(lat, lon, pt)
-            end
-        end
-        if should_close_vectors()
-            for pt in line_plot_coords(last(els), first(els))
-                extract_latlon_coords!(lat, lon, pt)
-            end
-        else
-            extract_latlon_coords!(lat, lon, last(els))
-        end
-    else
-        for el in els
-            extract_latlon_coords!(lat, lon, el)
-        end
-    end
-    if should_close_vectors()
-        extract_latlon_coords!(lat, lon, first(els))
-    end
-    return nothing
-end
-
 function extract_latlon_coords!(lat::Vector{T}, lon::Vector{T}, v::AbstractVector) where T<:AbstractFloat
-    # If the elements are points, we simply call a specialized method for dealing with NaNs and straightening lines
-    is_valid_point(eltype(v)) && return _extract_latlon_coords_pointvector!(lat, lon, v)
-    # We simply call recursively on each element otherwise
-    for item in v
-        extract_latlon_coords!(lat, lon, item)
+    previous_point = false
+    should_close = should_close_vectors() && all(is_valid_point, v)
+    for (n, pair) in enumerate(PairIterator(v))
+        p, pnext = pair
+        if is_valid_point(p)
+            if !previous_point && should_insert_nan(lat, lon)
+                # Every time we have a point which was not preceded by another point we insert NaNs if the setting is enabled
+                extract_latlon_coords!(lat, lon, (NaN, NaN))
+            end
+            if should_oversample_points() && is_valid_point(pnext)
+                # We do eventual straightening only between couples of consecutive points
+                ptrange = if should_close || n < length(v)
+                    # For most cases where there is a segment between points we try to oversample the segment
+                    line_plot_coords(p, pnext) 
+                else
+                    # In case we are at the last element and we should not close the vector, we don't try to oversample the last segment
+                    (p,) 
+                end
+                for pt in ptrange
+                    extract_latlon_coords!(lat, lon, pt)
+                end
+            else
+                extract_latlon_coords!(lat, lon, p)
+            end
+            previous_point = true
+        else
+            # We simply call the function on the object
+            extract_latlon_coords!(lat, lon, p)
+            previous_point = false
+        end
+    end
+    if should_close
+        # We put back the first point
+        extract_latlon_coords!(lat, lon, first(v))
     end
     return nothing
 end
@@ -190,7 +189,7 @@ See also: [`geo_plotly_trace`](@ref), [`get_coastlines_trace_110`](@ref)
 function get_borders_trace_110(tracefunc::Function; admin = nothing, kwargs...)
     ensure_borders_loaded() # Make sure the Dict is loaded
     admins = if admin === nothing
-        keys(COUNTRIES_BORDERS_COASTLINES_110)
+        filter(k -> k !== "CoastLines", keys(COUNTRIES_BORDERS_COASTLINES_110))
     elseif admin isa AbstractString
         (admin,)
     else

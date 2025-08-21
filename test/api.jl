@@ -5,6 +5,8 @@
     using GeoPlottingHelpers: with_settings
     using Unitful
     f_box(l1, l2) = Box(Point(l1), Point(l2))
+
+    using Test
 end
 
 @testitem "to_raw_lonlat" setup = [setup_api] begin
@@ -15,8 +17,8 @@ end
     @test to_raw_lonlat(Meshes.flat(p)) == (20, 10)
 
     # We test NamedTuples
-    nt1 = (lat = 10, lon = 20)
-    nt2 = (lon = 20, lat = 10)
+    nt1 = (lat=10, lon=20)
+    nt2 = (lon=20, lat=10)
     @test to_raw_lonlat(nt1) == (20, 10)
     @test to_raw_lonlat(nt2) == (20, 10)
 
@@ -84,6 +86,41 @@ end
     @test eltype(extract_latlon_coords(Float64, b1).lat) == Float64
 
     @test_throws "for which `geom_iterable` or `to_raw_lonlat` is defined" extract_latlon_coords(Sphere(rand(Point), 100))
+
+    # We test here that vectors of valid points which are not represented by a same eltype also work correctly
+    vs = [
+        [(0, 0), LatLon(10, 0)],
+        [LatLon(13, 13), (30, 30)]
+    ]
+
+    out = with_settings((; OVERSAMPLE_LINES=:NORMAL)) do
+        extract_latlon_coords(vs)
+    end
+    @test count(isnan, out.lat) == 1
+    @test length(out.lat) > 5 # We have 4 points and 1 NaN, so we check oversampling leading to more than 5 points
+
+    polylike = [
+        (0,0),
+        LatLon(20, 0),
+        LatLon(20,20),
+        (20, 0)
+    ]
+    out = with_settings((; CLOSE_VECTORS=true)) do
+        extract_latlon_coords(polylike)
+    end
+    @test count(isnan, out.lat) == 0
+    @test length(out.lat) == length(polylike) + 1
+    @test first(out.lat) == last(out.lat) && first(out.lon) == last(out.lon)
+
+    out = with_settings((; OVERSAMPLE_LINES=:NORMAL)) do
+        extract_latlon_coords(polylike)
+    end
+    @test count(isnan, out.lat) == 0
+    @test length(out.lat) > 4 # We have 4 points but we are oversampling so we expect more
+    # We check that the last lat and lon are equivalent to the ones of the last original point
+    lon, lat = to_raw_lonlat(last(polylike))
+    @test last(out.lat) ≈ lat
+    @test last(out.lon) ≈ lon
 end
 
 @testitem "geo_plotly_trace" setup = [setup_api] begin
@@ -95,7 +132,7 @@ end
     @test eltype(tr.lat) == Float32
     @test tr.mode === "lines"
 
-    tr = geo_plotly_trace(scatter, b1; mode = "markers")
+    tr = geo_plotly_trace(scatter, b1; mode="markers")
     @test tr.type === "scatter"
     @test tr.mode === "markers"
 
@@ -108,25 +145,25 @@ end
 end
 
 @testitem "get_borders_trace_110" setup = [setup_api] begin
-    tr = get_borders_trace_110(; line_color = "blue")
+    tr = get_borders_trace_110(; line_color="blue")
     @test tr isa GenericTrace
     @test tr.type === "scattergeo"
     @test tr.line_color == "blue"
 
-    tr = get_borders_trace_110(scatter; admin = ["Italy", "France"])
+    tr = get_borders_trace_110(scatter; admin=["Italy", "France"])
     @test tr isa GenericTrace
     @test tr.type === "scatter"
     @test tr.mode === "lines"
     @test tr.line_color == "black"
 
-    tr = get_borders_trace_110(scatter; admin = "Spain", line_width = 2)
+    tr = get_borders_trace_110(scatter; admin="Spain", line_width=2)
     @test tr isa GenericTrace
     @test tr.type === "scatter"
     @test tr.mode === "lines"
     @test tr.line_width == 2
 
-    @test_logs (:warn, r"not found") get_borders_trace_110(scatter; admin = "spain")
-    @test_logs (:warn, r"can't be extracted") get_borders_trace_110(scatter; admin = "CoastLines")
+    @test_logs (:warn, r"not found") get_borders_trace_110(scatter; admin="spain")
+    @test_logs (:warn, r"can't be extracted") get_borders_trace_110(scatter; admin="CoastLines")
 end
 
 @testitem "get_coastlines_trace_110" setup = [setup_api] begin
