@@ -27,6 +27,7 @@ function GeoPlottingHelpers.extract_latlon_coords!(lat::Vector{T}, lon::Vector{T
     return nothing
 end
 
+GeoPlottingHelpers.geom_iterable(c::Chain) = eachvertex(c)
 GeoPlottingHelpers.geom_iterable(b::Box) = (boundary(b),) # boundary on box returns a ring
 GeoPlottingHelpers.geom_iterable(pol::Union{MultiPolygon,Polygon}) = rings(pol)
 GeoPlottingHelpers.geom_iterable(d::Domain) = d

@@ -121,6 +121,13 @@ end
     lon, lat = to_raw_lonlat(last(polylike))
     @test last(out.lat) ≈ lat
     @test last(out.lon) ≈ lon
+
+    # Test the chain
+    r = map(polylike) do p
+        lon, lat = to_raw_lonlat(p)
+        LatLon(lat, lon) |> Point
+    end |> Rope
+    @test extract_latlon_coords(r) == extract_latlon_coords(polylike)
 end
 
 @testitem "geo_plotly_trace" setup = [setup_api] begin
