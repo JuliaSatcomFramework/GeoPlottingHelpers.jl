@@ -39,6 +39,38 @@ function crossing_latitude_flat(start, stop)
     return lat1 + coeff * Δlat / den
 end
 
+# This is the part for computing latitude crossing using great circle geodesic. This relies on cross product and norm which are usually in LinearAlgebra but we don't want the dependency on it here, so we just reimplement those here.  
+function cross(a::NTuple{3}, b::NTuple{3})
+    a1, a2, a3 = a
+    b1, b2, b3 = b
+    return (a2*b3-a3*b2, a3*b1-a1*b3, a1*b2-a2*b1)
+end
+function normalize(a::NTuple{3})
+    return a ./ hypot(a...)
+end
+
+function lonlat_to_xyz(p)
+    lon, lat = to_raw_lonlat(p)
+    slat, clat = sincosd(lat)
+    slon, clon = sincosd(lon)
+    return (clon * clat, slon * clat, slat)
+end
+
+# The actual crossing implementation is taken from the antimeridian python implementation but is basic algebra
+function crossing_latitude_great_circle(start, stop)
+    # We transform the two points into xyz coordinates over the sphere
+    a = lonlat_to_xyz(start)
+    b = lonlat_to_xyz(stop)
+    # The cross product identifies the plane passing through both points
+    n1 = cross(a, b)
+    # The unity Y vector identifies the meridian plane
+    n2 = (0,1,0)
+    # The intersection of both planes 
+    intersection = normalize(cross(n1, n2))
+    # We are only interested in the latitude so we can just take the arcsin of the z coordinate
+    return asind(intersection[3])
+end
+
 #= 
 This function will take two points in lat/lon and return a generator which produces more points to simulate straight lines on scattergeo plots. It has denser points closer to the poles as the distortion from scattergeo are more pronounced there.
 This function is also extremely heuristic, and can probably be improved significantly in terms of the algorithm
