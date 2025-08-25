@@ -1,7 +1,7 @@
 
 # These are internal function used to parse the settings to customize the behavior of `extract_latlon_coords!`.
 should_insert_nan() = get(PLOT_SETTINGS[], :INSERT_NAN, NT_SETTINGS.INSERT_NAN[][])
-should_shorten_lines() = get(PLOT_SETTINGS[], :OVERSAMPLE_LINES) do 
+should_shorten_lines() = get(PLOT_SETTINGS[], :OVERSAMPLE_LINES) do
     get(PLOT_SETTINGS[], :PLOT_STRAIGHT_LINES, NT_SETTINGS.OVERSAMPLE_LINES[][])
 end === :SHORT
 should_oversample_points() = get(PLOT_SETTINGS[], :OVERSAMPLE_LINES) do
@@ -43,7 +43,7 @@ end
 function cross(a::NTuple{3}, b::NTuple{3})
     a1, a2, a3 = a
     b1, b2, b3 = b
-    return (a2*b3-a3*b2, a3*b1-a1*b3, a1*b2-a2*b1)
+    return (a2 * b3 - a3 * b2, a3 * b1 - a1 * b3, a1 * b2 - a2 * b1)
 end
 function normalize(a::NTuple{3})
     return a ./ hypot(a...)
@@ -90,7 +90,7 @@ function crossing_latitude_great_circle(start, stop)
     # The cross product identifies the plane passing through both points
     n1 = cross(a, b)
     # The unity Y vector identifies the meridian plane
-    n2 = (0,1,0)
+    n2 = (0, 1, 0)
     # The intersection of both planes 
     intersection = normalize(cross(n1, n2))
     # We are only interested in the latitude so we can just take the arcsin of the z coordinate
@@ -119,11 +119,11 @@ function line_plot_coords(start, stop)
     end
     nrm = hypot(Δlat, Δlon)
     should_split = nrm > 10
-    min_length = if should_split 
-        10 
-    else 
+    min_length = if should_split
+        10
+    else
         maxlat = max(abs(lat1), abs(lat2))
-        val = (100 / max(maxlat, 10)) 
+        val = (100 / max(maxlat, 10))
         if maxlat > 65
             val /= 2
         end
@@ -145,7 +145,7 @@ function line_plot_coords(start, stop)
 end
 
 # This function makes sure that the Dict with borders and coastlines has been loaded
-function ensure_borders_loaded(; force = false)
+function ensure_borders_loaded(; force=false)
     isempty(COUNTRIES_BORDERS_COASTLINES_110) || force || return
     # We load the dictionary
     toml_dict = TOML.parsefile(joinpath(artifact"borders_110m", "borders_110m.toml"))
@@ -158,22 +158,22 @@ function ensure_borders_loaded(; force = false)
 end
 
 # This is an helper struct to iterate over pair of consecutive elements within a vector, always return as last element the pair between the last and the first element
-struct PairIterator{V <: AbstractVector}
+struct PairIterator{V<:AbstractVector}
     wrapped::V
 end
 
 # Iterator interface
 Base.length(iter::PairIterator) = return length(iter.wrapped)
-Base.eltype(::PairIterator{V}) where V = return Pair{eltype(V), eltype(V)}
+Base.eltype(::PairIterator{V}) where V = return Pair{eltype(V),eltype(V)}
 
-function Base.iterate(iter::PairIterator, state = 1)
+function Base.iterate(iter::PairIterator, state=1)
     L = length(iter)
     state <= L || return nothing
     (; wrapped) = iter
     item = if state == L
         wrapped[end] => wrapped[1]
     else
-        wrapped[state] => wrapped[state + 1]
+        wrapped[state] => wrapped[state+1]
     end
     return item, state + 1
 end
