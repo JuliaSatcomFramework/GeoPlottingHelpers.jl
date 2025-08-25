@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.7] - 2025-08-25
 ### Added
 - Added support for `Meshes.Chain`s in `extract_latlon_coords` (via a method for `GeoPlottingHelpers.geom_iterable`)
+- Added internal helper functions to compute great circle antimeridian latitude crossing and to compute points over a great circle arc between two given poitns (using the Slerp algorithm)
+  - These functions are not currently exported or used internally in the latlon coordinate extraction.
 
 ## [0.1.6] - 2025-08-21
 
