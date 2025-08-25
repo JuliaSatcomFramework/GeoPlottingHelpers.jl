@@ -48,12 +48,38 @@ end
 function normalize(a::NTuple{3})
     return a ./ hypot(a...)
 end
+dot(a::NTuple{3}, b::NTuple{3}) = mapreduce(*, +, a, b)
 
 function lonlat_to_xyz(p)
     lon, lat = to_raw_lonlat(p)
     slat, clat = sincosd(lat)
     slon, clon = sincosd(lon)
     return (clon * clat, slon * clat, slat)
+end
+
+function xyz_to_lonlat(xyz::NTuple{3})
+    x, y, z = xyz
+    lat = asind(z)
+    lon = atand(y, x)
+    return lon, lat
+end
+
+"""
+    slerp(start, stop, t)
+
+Compute the point on the great circle arc between two points (start and stop) at a given fraction of the way between them.
+
+The two inputs points can be any object for which `to_raw_lonlat` is defined, and `t` must be a number between 0 and 1.
+
+It returns a Tuple (lon, lat) with the coordinate of the point on the great circle arc between `start` and `stop` at a normalized distance `t` from `start` to `stop`.
+"""
+function slerp(start, stop, t)
+    a = lonlat_to_xyz(start)
+    b = lonlat_to_xyz(stop)
+    Ω = acos(dot(a, b))
+    sΩ = sin(Ω)
+    xyz = @. (a * sin((1 - t) * Ω) + b * sin(t * Ω)) / sΩ
+    return xyz_to_lonlat(xyz)
 end
 
 # The actual crossing implementation is taken from the antimeridian python implementation but is basic algebra
