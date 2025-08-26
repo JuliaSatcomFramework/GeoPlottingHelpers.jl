@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.1.8] - 2025-08-26
+### Changed
+- Updated the `geom_iterable` method for `Multi` (before it was only defined for `MultiPolygon`) to allow generic auto plotting of `Multi`s.
+
+
 ## [0.1.7] - 2025-08-26
 ### Added
 - Added support for `Meshes.Chain`s in `extract_latlon_coords` (via a method for `GeoPlottingHelpers.geom_iterable`)

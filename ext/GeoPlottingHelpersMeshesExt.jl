@@ -29,7 +29,8 @@ end
 
 GeoPlottingHelpers.geom_iterable(c::Chain) = eachvertex(c)
 GeoPlottingHelpers.geom_iterable(b::Box) = (boundary(b),) # boundary on box returns a ring
-GeoPlottingHelpers.geom_iterable(pol::Union{MultiPolygon,Polygon}) = rings(pol)
+GeoPlottingHelpers.geom_iterable(pol::Polygon) = rings(pol)
+GeoPlottingHelpers.geom_iterable(m::Multi) = parent(m)
 GeoPlottingHelpers.geom_iterable(d::Domain) = d
 
 GeoPlottingHelpers.geo_plotly_trace_default_kwargs(item::Union{Geometry, Domain}, tracefunc) = (; mode = "lines")
