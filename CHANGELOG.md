@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.1.9] - 2025-08-26
+### Fixed
+- Fixed `extract_latlon_coords` not correctly inserting NaNs between two ropes, as the `geom_iterable` method for `Chain` was not returning an iterator of geometries but an iterator of points.
+
 ## [0.1.8] - 2025-08-26
 ### Fixed
 - Fixed a typo/error in the `antimeridian_crossing_great_circle` function.

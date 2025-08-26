@@ -128,6 +128,11 @@ end
         LatLon(lat, lon) |> Point
     end |> Rope
     @test extract_latlon_coords(r) == extract_latlon_coords(polylike)
+
+    # We also test that it correctly inserts NaNs between two ropes
+    mr = Multi([r, r])
+    nt = extract_latlon_coords(mr)
+    @test count(isnan, nt.lat) == 1
 end
 
 @testitem "geo_plotly_trace" setup = [setup_api] begin
