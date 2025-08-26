@@ -8,9 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 
 ## [0.1.8] - 2025-08-26
+### Fixed
+- Fixed a typo/error in the `antimeridian_crossing_great_circle` function.
+- Refactored the internals of the great circle crossing computations to be more flexible in the input types.
+
+## [0.1.8] - 2025-08-26
 ### Changed
 - Updated the `geom_iterable` method for `Multi` (before it was only defined for `MultiPolygon`) to allow generic auto plotting of `Multi`s.
-
 
 ## [0.1.7] - 2025-08-26
 ### Added

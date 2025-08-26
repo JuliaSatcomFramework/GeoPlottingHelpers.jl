@@ -76,23 +76,32 @@ It returns a Tuple (lon, lat) with the coordinate of the point on the great circ
 function slerp(start, stop, t)
     a = lonlat_to_xyz(start)
     b = lonlat_to_xyz(stop)
+    xyz = slerp(a, b, t)
+    return xyz_to_lonlat(xyz)
+end
+function slerp(a::NTuple{3}, b::NTuple{3}, t)
     Ω = acos(dot(a, b))
     sΩ = sin(Ω)
     xyz = @. (a * sin((1 - t) * Ω) + b * sin(t * Ω)) / sΩ
-    return xyz_to_lonlat(xyz)
+    return xyz
 end
 
 # The actual crossing implementation is taken from the antimeridian python implementation but is basic algebra
-function crossing_latitude_great_circle(start, stop)
-    # We transform the two points into xyz coordinates over the sphere
+function antimeridian_crossing_great_circle(start, stop)
     a = lonlat_to_xyz(start)
     b = lonlat_to_xyz(stop)
+    return antimeridian_crossing_great_circle(a, b)
+end
+function antimeridian_crossing_great_circle(a::NTuple{3}, b::NTuple{3})
     # The cross product identifies the plane passing through both points
     n1 = cross(a, b)
-    # The unity Y vector identifies the meridian plane
-    n2 = (0, 1, 0)
-    # The intersection of both planes 
+    # The unity Y vector identifies the perpendicular to the meridian plane. The sign of the Y coordinate to identify the normal should make the normal vector be located in the same hemisphere of the starting point.
+    n2 = (0, copysign(1, a[2]), 0)
+    # The intersection of both planes normalized returns the xyz coordinate of the intersection over the sphere's surface
     intersection = normalize(cross(n1, n2))
+end
+function crossing_latitude_great_circle(start, stop)
+    intersection = antimeridian_crossing_great_circle(start, stop)
     # We are only interested in the latitude so we can just take the arcsin of the z coordinate
     return asind(intersection[3])
 end
