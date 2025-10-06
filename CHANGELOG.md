@@ -7,11 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-## [0.1.9] - 2025-08-26
+## [0.1.11] - 2025-10-06
+### Changed
+- Updated compat of Meshes/CoordRefSystems to include 0.55/0.19 versions.
+
+## [0.1.10] - 2025-08-26
 ### Fixed
 - Fixed `extract_latlon_coords` not correctly inserting NaNs between two ropes, as the `geom_iterable` method for `Chain` was not returning an iterator of geometries but an iterator of points.
 
-## [0.1.8] - 2025-08-26
+## [0.1.9] - 2025-08-26
 ### Fixed
 - Fixed a typo/error in the `antimeridian_crossing_great_circle` function.
 - Refactored the internals of the great circle crossing computations to be more flexible in the input types.
