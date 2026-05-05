@@ -20,7 +20,7 @@ If a method for this function is implemented for a custom type, GeoPlottingHelpe
 function geom_iterable end
 
 """
-    extract_latlon_coords!(lat::AbstractVector{<:Union{AbstractFloat,Nothing}}, lon::AbstractVector{<:Union{AbstractFloat,Nothing}}, item)
+    extract_latlon_coords!(lat::Vector{T}, lon::Vector{T}, item) where T<:AbstractFloat
 
 Extract the lat/lon coordinates out of `item` and append them to the `lat` and `lon` vectors which are assumed to represent values in degrees.
 
@@ -30,7 +30,7 @@ The behavior of this function can be customized by using the [`PLOT_SETTINGS`](@
 
 See also: [`extract_latlon_coords`](@ref), [`geom_iterable`](@ref), [`to_raw_lonlat`](@ref), [`with_settings`](@ref)
 """
-function extract_latlon_coords!(lat::AbstractVector{<:Union{AbstractFloat,Nothing}}, lon::AbstractVector{<:Union{AbstractFloat,Nothing}}, item)
+function extract_latlon_coords!(lat::Vector{T}, lon::Vector{T}, item) where T<:AbstractFloat
     if is_iterable_geometry(item)
         for geom in geom_iterable(item)
             extract_latlon_coords!(lat, lon, geom)
@@ -45,7 +45,7 @@ function extract_latlon_coords!(lat::AbstractVector{<:Union{AbstractFloat,Nothin
     return nothing
 end
 
-function extract_latlon_coords!(lat::AbstractVector{<:Union{AbstractFloat,Nothing}}, lon::AbstractVector{<:Union{AbstractFloat,Nothing}}, v::AbstractVector)
+function extract_latlon_coords!(lat::Vector{T}, lon::Vector{T}, v::AbstractVector) where T<:AbstractFloat
     previous_point = false
     should_close = should_close_vectors() && all(is_valid_point, v)
     for (n, pair) in enumerate(PairIterator(v))
@@ -53,8 +53,7 @@ function extract_latlon_coords!(lat::AbstractVector{<:Union{AbstractFloat,Nothin
         if is_valid_point(p)
             if !previous_point && should_insert_nan(lat, lon)
                 # Every time we have a point which was not preceded by another point we insert NaNs if the setting is enabled
-                sep = nan_as_nothing() ? nothing : NaN
-                push!(lat, sep); push!(lon, sep)
+                extract_latlon_coords!(lat, lon, (NaN, NaN))
             end
             if should_oversample_points() && is_valid_point(pnext)
                 # We do eventual straightening only between couples of consecutive points
@@ -86,10 +85,9 @@ function extract_latlon_coords!(lat::AbstractVector{<:Union{AbstractFloat,Nothin
 end
 
 # This is useful to join together outputs of extract_latlon_coords
-function extract_latlon_coords!(lat::AbstractVector{<:Union{AbstractFloat,Nothing}}, lon::AbstractVector{<:Union{AbstractFloat,Nothing}}, v::Union{@NamedTuple{lat::Vector{F}, lon::Vector{F}}, @NamedTuple{lon::Vector{F}, lat::Vector{F}}}) where {F<:AbstractFloat}
+function extract_latlon_coords!(lat::Vector{T}, lon::Vector{T}, v::Union{@NamedTuple{lat::Vector{F}, lon::Vector{F}}, @NamedTuple{lon::Vector{F}, lat::Vector{F}}}) where {T<:AbstractFloat, F<:AbstractFloat}
     if should_insert_nan() && !isempty(lat) && !isempty(lon)
-        sep = nan_as_nothing() ? nothing : NaN
-        push!(lat, sep); push!(lon, sep)
+        extract_latlon_coords!(lat, lon, (NaN, NaN))
     end
     append!(lat, v.lat)
     append!(lon, v.lon)
@@ -104,9 +102,8 @@ Returns a NamedTuple with two vectors `lat` and `lon` containing the correspondi
 This is mostly intended to simplify creation of the `lat` and `lon` keyword arguments to provide to the `scattergeo` function from `PlotlyBase`. By default points are converted to Float32 and NaN values are inserted between each separate vector of points to allow plotting multiple geometries within a single trace.
 """
 function extract_latlon_coords(T::Type{<:AbstractFloat}, item)
-    ET = nan_as_nothing() ? Union{T, Nothing} : T
-    lat = ET[]
-    lon = ET[]
+    lat = T[]
+    lon = T[]
     extract_latlon_coords!(lat, lon, item)
     return (; lat, lon)
 end
