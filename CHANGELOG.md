@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.1.12] - 2026-06-17
+### Changed
+- Updated compat of Meshes to include 0.56/0.57 versions.
+
 ## [0.1.11] - 2025-10-06
 ### Changed
 - Updated compat of Meshes/CoordRefSystems to include 0.55/0.19 versions.
