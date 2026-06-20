@@ -9,6 +9,7 @@ should_oversample_points() = get(PLOT_SETTINGS[], :OVERSAMPLE_LINES) do
 end ∈ (:SHORT, :NORMAL)
 should_close_vectors() = get(PLOT_SETTINGS[], :CLOSE_VECTORS, NT_SETTINGS.CLOSE_VECTORS[][])
 force_orientation() = get(PLOT_SETTINGS[], :FORCE_ORIENTATION, NT_SETTINGS.FORCE_ORIENTATION[][])
+nan_as_nothing() = get(PLOT_SETTINGS[], :NAN_AS_NOTHING, NT_SETTINGS.NAN_AS_NOTHING[][])
 
 # For should_insert_nan we also add a method that takes lat and lon vectors and also checks if they are empty
 should_insert_nan(lat::AbstractVector, lon::AbstractVector) = return should_insert_nan() && !isempty(lat) && !isempty(lon)
