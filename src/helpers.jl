@@ -128,8 +128,16 @@ const OVERSAMPLE_MAX_DEPTH = 12
 plot. A scattergeo plot draws a pair of consecutive points as a great circle arc, but a border or a
 coverage area follows straight lines in lat/lon. The two paths differ most at the middle of the
 segment, so the code compares the two middle points and splits the segment when they are more
-than `tol` apart. This is the standard adaptive subdivision test used to draw a curve, and it puts
-points only where the two paths differ.
+than `tol` apart. This puts points only where the two paths differ.
+
+This is the adaptive subdivision test that a 2D graphics library uses to draw a curve, and that
+d3-geo uses to resample a projected line. Two references:
+  - Shemanarev, "Adaptive Subdivision of Bezier Curves", 2005:
+    https://agg.sourceforge.net/antigrain.com/research/adaptive_bezier/index.html
+  - d3-geo `src/projection/resample.js`:
+    https://github.com/d3/d3-geo/blob/main/src/projection/resample.js
+d3-geo measures the distance from the middle point to the chord instead, and it holds two more
+tests that a projection needs and a scattergeo trace does not.
 
 `a` and `b` are the xyz coordinates of `p1` and `p2`. The caller passes them in, as the recursion
 computes each of them once and then reuses it for both halves.
