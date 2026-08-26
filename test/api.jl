@@ -161,6 +161,44 @@ end
     @test length(oversample([(-180.0f0, 89.97f0), (180.0f0, 89.98f0)]).lat) > 100
 end
 
+@testitem "oversampling stays within the tolerance" setup = [setup_api] begin
+    using GeoPlottingHelpers: lonlat_to_xyz, xyz_to_lonlat, normalize
+
+    #=
+    A scattergeo plot draws each pair of consecutive points as a great circle arc. The arc and the
+    wanted straight lat/lon line differ most at the middle of the pair, so the code measures the
+    gap there. The largest gap over the whole output is what `:OVERSAMPLE_TOL` bounds.
+    =#
+    function max_deviation(out)
+        pts = collect(zip(out.lon, out.lat))
+        maximum(1:length(pts)-1; init=0.0) do i
+            p1, p2 = pts[i], pts[i+1]
+            glon, glat = xyz_to_lonlat(normalize(lonlat_to_xyz(p1) .+ lonlat_to_xyz(p2)))
+            mlon, mlat = (p1 .+ p2) ./ 2
+            hypot(mod(glon - mlon + 180, 360) - 180, glat - mlat)
+        end
+    end
+    oversample(pts; tol) = with_settings(:OVERSAMPLE_LINES => :NORMAL, :INSERT_NAN => false,
+        :CLOSE_VECTORS => true, :OVERSAMPLE_TOL => tol) do
+        extract_latlon_coords(Float64, pts)
+    end
+
+    shapes = [
+        [(20.0, 10.0), (40.0, 10.0), (40.0, 30.0), (20.0, 30.0)],   # a plain box
+        [(-100.0, 40.0), (100.0, 45.0)],                            # a long diagonal
+        [(0.0, 80.0), (90.0, 80.0), (90.0, 60.0), (0.0, 60.0)],     # a box at a high latitude
+        [(-180.0, 71.5), (0.0, 71.5), (180.0, 71.5)],               # a parallel around the earth
+    ]
+    for tol in (0.05, 0.01, 0.002), shape in shapes
+        @test max_deviation(oversample(shape; tol)) <= tol
+    end
+
+    # A smaller tolerance adds more points.
+    counts = [length(oversample(shapes[end]; tol).lat) for tol in (0.05, 0.01, 0.002)]
+    @test issorted(counts)
+    @test counts[end] > counts[begin]
+end
+
 @testitem "geo_plotly_trace" setup = [setup_api] begin
     b1 = f_box(LatLon(10, 20), LatLon(30, 40))
 
