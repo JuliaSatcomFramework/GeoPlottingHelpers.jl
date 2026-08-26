@@ -1,6 +1,6 @@
 module GeoPlottingHelpersPlotlyBaseExt
 
-using GeoPlottingHelpers: GeoPlottingHelpers, geo_plotly_trace, geo_plotly_trace_default_kwargs, extract_latlon_coords, get_borders_trace_110, get_coastlines_trace_110, PLOT_SETTINGS, with_settings
+using GeoPlottingHelpers: GeoPlottingHelpers, geo_plotly_trace, geo_plotly_trace_default_kwargs, extract_latlon_coords, get_borders_trace_110, get_coastlines_trace_110, PLOT_SETTINGS, with_settings, nan_as_nothing
 using PlotlyBase
 
 function GeoPlottingHelpers.geo_plotly_trace(T::Type{<:AbstractFloat}, tracefunc::Function, item; kwargs...)
@@ -10,9 +10,16 @@ function GeoPlottingHelpers.geo_plotly_trace(T::Type{<:AbstractFloat}, tracefunc
     # We try to extract custom per-trace settings. We have both settings_dict and settings_nt depending on priority of the settings. NamedTuple settings have lower priority
     settings_dict = @something get(nt_kwargs, :settings_dict, nothing) PLOT_SETTINGS[] # This falls back to the existing high priority settings
     settings_nt = @something get(nt_kwargs, :settings_nt, nothing) (;) # This falls back to empty NamedTuple which is using low priority default values
+    _nan_to_nothing(x::AbstractFloat) = isnan(x) ? nothing : x
+    _nan_to_nothing(x) = x
     (;lon, lat) = with_settings(settings_dict) do
         with_settings(settings_nt) do
-            extract_latlon_coords(T, item)
+            ll = extract_latlon_coords(T, item)
+            if nan_as_nothing()
+                (lat = map(_nan_to_nothing, ll.lat), lon = map(_nan_to_nothing, ll.lon))
+            else
+                ll
+            end
         end
     end
     # We remove settings from the kwargs as they are not needed for plotly

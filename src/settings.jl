@@ -1,4 +1,4 @@
-#= 
+#=
 These are internal ScopedValues used to control the behavior of `extract_latlon_coords!`. They are mirrored by keys of the same name in the `PLOT_SETTINGS` Dict which is also a ScopedValue and should be from users to control the behavior of `extract_latlon_coords!`.
 
 Each of these settings will control the behvior of `extract_latlon_coords!`.
@@ -13,12 +13,14 @@ Each of these settings will control the behvior of `extract_latlon_coords!`.
   - `:NONE` will not force the orientation of the rings of points.
   - `:CW` will force the orientation of the rings of points to be clockwise.
   - `:CCW` will force the orientation of the rings of points to be counter-clockwise.
+- NAN_AS_NOTHING: Specify whether separator NaN values should be emitted as `nothing` instead of `NaN`. When true, the output lat/lon vectors will have element type `Union{T, Nothing}` rather than `T`. This is useful for JSON serialization (e.g. PlotlyBase → JS) where NaN is not a valid JSON value.
 =#
 const NT_SETTINGS = (;
     INSERT_NAN = ScopedValue{Base.RefValue{Bool}}(Ref(true)),
     OVERSAMPLE_LINES = ScopedValue{Base.RefValue{Symbol}}(Ref(:NONE)),
     CLOSE_VECTORS = ScopedValue{Base.RefValue{Bool}}(Ref(false)),
     FORCE_ORIENTATION = ScopedValue{Base.RefValue{Symbol}}(Ref(:NONE)),
+    NAN_AS_NOTHING = ScopedValue{Base.RefValue{Bool}}(Ref(false)),
 )
 
 # This is a map of the names of the settings in the `NT_SETTINGS`. It is mostly needed as some settings are aliases of others (currently only `PLOT_STRAIGHT_LINES` is an alias of `OVERSAMPLE_LINES`).
@@ -28,6 +30,7 @@ const SETTINGS_NAMES_MAP = (;
     PLOT_STRAIGHT_LINES = :OVERSAMPLE_LINES,
     CLOSE_VECTORS = :CLOSE_VECTORS,
     FORCE_ORIENTATION = :FORCE_ORIENTATION,
+    NAN_AS_NOTHING = :NAN_AS_NOTHING,
 )
 
 # This is a Dict with the same settings as NT_SETTINGS but this will take priority and is what most users will set when using `with_settings`.
@@ -50,6 +53,7 @@ The possible keys that can be provided as settings are:
   - `:NONE` will not force the orientation of the rings of points.
   - `:CW` will force the orientation of the rings of points to be clockwise.
   - `:CCW` will force the orientation of the rings of points to be counter-clockwise.
+- `:NAN_AS_NOTHING => Bool`: When `true`, separator NaN values inserted between geometry segments are emitted as `nothing` instead of `NaN`, producing `Vector{Union{T, Nothing}}` lat/lon vectors. Defaults to `false`. Useful for JSON serialization (e.g. PlotlyBase → JS) where NaN is not a valid JSON value.
 
 # Example
 ```julia
