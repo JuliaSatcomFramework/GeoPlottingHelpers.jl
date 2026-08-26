@@ -118,6 +118,16 @@ function line_plot_coords(start, stop)
     if Δlon ≈ 0
         return (start,)
     end
+    # An edge with both ends at the same pole covers no ground, as longitude does not
+    # identify a place at |lat| = 90. Sampling it puts every point in the same spot, and the
+    # near-pole refinement below makes that the densest case of all. This must stay before
+    # the antimeridian branch, which would otherwise cut such an edge into two pole edges.
+    # The second test keeps a pole-to-pole edge (90 to -90) out, as that one covers real ground.
+    # The tolerance is absolute, in degrees, as `≈` would scale it with the eltype and widen the
+    # test to 0.03 degrees for Float32 inputs, which the border and coastline data uses.
+    if 90 - abs(lat1) < 1e-6 && abs(lat1 - lat2) < 1e-6
+        return (start,)
+    end
     if abs(Δlon) > 180 && should_shorten_lines()
         # We have to shorten and split at antimeridian
         mid_lat = crossing_latitude_flat((lon1, lat1), (lon2, lat2))

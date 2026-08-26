@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.1.13] - 2026-08-26
+### Fixed
+- Fixed `line_plot_coords` oversampling an edge whose two ends both sit at a pole. Longitude does not identify a place at a latitude of 90, so such an edge covers no ground, but the near-pole refinement sampled it more densely than any other case. A polar cap ring produced over a thousand copies of the pole, which is waste for a scattergeo trace and fatal for a consumer that triangulates the ring. An edge running from one pole to the other keeps its oversampling, as it covers real ground.
+
 ## [0.1.12] - 2026-06-17
 ### Changed
 - Updated compat of Meshes to include 0.56/0.57 versions.

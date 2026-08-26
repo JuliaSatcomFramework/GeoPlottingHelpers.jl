@@ -135,6 +135,32 @@ end
     @test count(isnan, nt.lat) == 1
 end
 
+@testitem "pole edges are not oversampled" setup = [setup_api] begin
+    oversample(pts) = with_settings(:OVERSAMPLE_LINES => :NORMAL, :INSERT_NAN => false, :CLOSE_VECTORS => true) do
+        extract_latlon_coords(Float64, pts)
+    end
+
+    # An edge with both ends at the same pole is a single place, so it must not be sampled.
+    for pole in (90.0, -90.0)
+        out = oversample([(-180.0, pole), (180.0, pole)])
+        @test length(out.lat) < 10
+        @test all(≈(pole), out.lat)
+    end
+
+    # A polar cap keeps the points describing its parallel and drops only the pole edge.
+    out = oversample([(-180.0, 90.0), (-180.0, 71.5), (180.0, 71.5), (180.0, 90.0)])
+    @test count(≈(90), out.lat) < 10
+    @test count(≈(71.5), out.lat) > 100
+
+    # An edge from pole to pole covers real ground, so it keeps its oversampling.
+    out = oversample([(0.0, 90.0), (180.0, -90.0)])
+    @test length(out.lat) > 100
+
+    # An edge near a pole is not at a pole. Float32 input must not widen the test, as `≈` would.
+    # The border and coastline data uses Float32, so this ring must keep its oversampling.
+    @test length(oversample([(-180.0f0, 89.97f0), (180.0f0, 89.98f0)]).lat) > 100
+end
+
 @testitem "geo_plotly_trace" setup = [setup_api] begin
     b1 = f_box(LatLon(10, 20), LatLon(30, 40))
 
