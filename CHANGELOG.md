@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.1.13] - 2026-08-26
+### Changed
+- `line_plot_coords` now places its extra points by adaptive subdivision. A scattergeo plot draws each pair of points as a great circle arc. The code takes the middle of that arc. It splits the segment while the arc sits more than `:OVERSAMPLE_TOL` from the wanted straight lat/lon line. The tests are the ones d3-geo uses to resample a projected line. The largest gap is now the same everywhere, and the whole 110m border and coastline data needs 30% fewer points.
+
+### Added
+- New `:OVERSAMPLE_TOL` setting. It sets the gap, in degrees, that an oversampled line aims to keep from the straight lat/lon line between two input points. It defaults to `0.01`. Set it lower when the plot is zoomed in, as the same gap then covers more of the screen. It is a target, not a bound: the method tests each split it makes rather than the whole line.
+
+### Fixed
+- Fixed `line_plot_coords` oversampling an edge whose two ends both sit at a pole. Longitude does not identify a place at a latitude of 90, so such an edge covers no ground. A polar cap ring produced over a thousand copies of the pole. Those copies are waste for a scattergeo trace, and they are fatal for a consumer that triangulates the ring. An edge that runs between the two poles keeps its oversampling, as it covers real ground.
+- Fixed `line_plot_coords` raising an `InexactError` on a point whose coordinates are `NaN`. It now returns the start point and stops.
+
 ## [0.1.12] - 2026-06-17
 ### Changed
 - Updated compat of Meshes to include 0.56/0.57 versions.

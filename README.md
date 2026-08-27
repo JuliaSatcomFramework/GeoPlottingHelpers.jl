@@ -62,6 +62,7 @@ Several behaviours can be tuned with `with_settings`:
 |-----|--------|---------|--------|
 | `:INSERT_NAN` | `Bool` | `true` | Insert NaN between sub-geometries |
 | `:OVERSAMPLE_LINES` | `:NONE` / `:NORMAL` / `:SHORT` | `:NONE` | Add interpolated points so edges look straight on `scattergeo` |
+| `:OVERSAMPLE_TOL` | `Real` | `0.01` | Target gap in degrees from the straight lat/lon line (smaller adds more points) |
 | `:CLOSE_VECTORS` | `Bool` | `false` | Repeat first point at end of each vector |
 | `:FORCE_ORIENTATION` | `:NONE` / `:CW` / `:CCW` | `:NONE` | Force ring winding order (use `:CW` with Plotly's `fill="toself"`) |
 

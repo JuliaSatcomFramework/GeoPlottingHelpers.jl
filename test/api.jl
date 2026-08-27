@@ -135,6 +135,98 @@ end
     @test count(isnan, nt.lat) == 1
 end
 
+@testitem "pole edges are not oversampled" setup = [setup_api] begin
+    oversample(pts) = with_settings(:OVERSAMPLE_LINES => :NORMAL, :INSERT_NAN => false, :CLOSE_VECTORS => true) do
+        extract_latlon_coords(Float64, pts)
+    end
+
+    # An edge with both ends at the same pole is a single place, so it must not be sampled.
+    for pole in (90.0, -90.0)
+        out = oversample([(-180.0, pole), (180.0, pole)])
+        @test length(out.lat) < 10
+        @test all(≈(pole), out.lat)
+    end
+
+    # A polar cap keeps the points describing its parallel and drops only the pole edge.
+    out = oversample([(-180.0, 90.0), (-180.0, 71.5), (180.0, 71.5), (180.0, 90.0)])
+    @test count(≈(90), out.lat) < 10
+    @test count(≈(71.5), out.lat) > 100
+
+    # An edge from pole to pole covers real ground, so it keeps its oversampling.
+    out = oversample([(0.0, 90.0), (180.0, -90.0)])
+    @test length(out.lat) > 100
+
+    # An edge near a pole is not at a pole. Float32 input must not widen the test, as `≈` would.
+    # The border and coastline data uses Float32, so this ring must keep its oversampling. A ring
+    # that the pole test swallows holds 3 points: the two input points and the closing point.
+    @test length(oversample([(-180.0f0, 89.97f0), (180.0f0, 89.98f0)]).lat) > 3
+end
+
+@testitem "oversampling stays within the tolerance" setup = [setup_api] begin
+    using GeoPlottingHelpers: line_plot_coords, slerp
+
+    # Distance in degrees from `q` to the straight lat/lon line between `p1` and `p2`.
+    function dist_to_segment(q, p1, p2)
+        vlon, vlat = p2 .- p1
+        wlon, wlat = q .- p1
+        d2 = vlon * vlon + vlat * vlat
+        t = d2 == 0 ? 0.0 : clamp((wlon * vlon + wlat * vlat) / d2, 0, 1)
+        return hypot(wlon - t * vlon, wlat - t * vlat)
+    end
+
+    oversample_pts(pts; tol) = with_settings(:OVERSAMPLE_LINES => :NORMAL, :OVERSAMPLE_TOL => tol) do
+        line_plot_coords(pts[1], pts[2])
+    end
+
+    #=
+    The largest gap between the line a scattergeo plot draws and the straight lat/lon line that the
+    two input points ask for. The plot draws each pair of output points as a great circle arc, so
+    the code walks every arc and takes the distance of each sample to the wanted line.
+    =#
+    function true_gap(p1, p2; tol)
+        pts = push!(oversample_pts([p1, p2]; tol), p2)
+        maximum(1:length(pts)-1; init=0.0) do i
+            maximum(k -> dist_to_segment(slerp(pts[i], pts[i+1], k / 16), p1, p2), 0:16)
+        end
+    end
+
+    segments = [
+        ((20.0, 10.0), (40.0, 10.0)),     # a plain segment
+        ((-100.0, 40.0), (100.0, 45.0)),  # a long segment at a mid latitude
+        ((0.0, 80.0), (90.0, 80.0)),      # a segment at a high latitude
+        ((-100.0, 71.5), (100.0, 71.5)),  # a long segment near a pole
+        ((0.0, -20.0), (60.0, 20.0)),     # a segment that straddles the equator
+        ((0.0, -30.0), (170.0, 10.0)),    # a long segment that straddles the equator
+        ((0.0, -10.0), (20.0, 10.0)),     # a straddling segment below the 30 degree split
+        ((0.0, -36.0), (29.0, 12.0)),     # a straddling segment that is not symmetric
+    ]
+    for tol in (0.05, 0.01, 0.002), (p1, p2) in segments
+        # The recursion tests each split it makes, not the whole line, so the gap of a line sits a
+        # little above the tolerance. Twice the tolerance is the largest overshoot measured over a
+        # grid of 36045 segments. See `.scratch/spikes/oversample_bench_results.md`.
+        @test true_gap(p1, p2; tol) <= tol * 2
+    end
+
+    # A meridian is a great circle, so the line a scattergeo plot draws is already straight.
+    @test length(oversample_pts([(0.0, -80.0), (0.0, 80.0)]; tol=0.01)) == 1
+
+    # A point whose coordinates are NaN must not raise.
+    @test length(oversample_pts([(NaN, NaN), (10.0, 20.0)]; tol=0.01)) == 1
+
+    # The tolerance must be a finite positive number.
+    @test_throws "must be a finite positive number" oversample_pts([(0.0, 0.0), (10.0, 10.0)]; tol=0)
+    @test_throws "must be a finite positive number" oversample_pts([(0.0, 0.0), (10.0, 10.0)]; tol=-0.01)
+
+    # A smaller tolerance adds more points.
+    counts = map((0.05, 0.01, 0.002)) do tol
+        with_settings(:OVERSAMPLE_LINES => :NORMAL, :OVERSAMPLE_TOL => tol) do
+            length(line_plot_coords((-100.0, 71.5), (100.0, 71.5)))
+        end
+    end
+    @test issorted(counts)
+    @test counts[end] > counts[begin]
+end
+
 @testitem "geo_plotly_trace" setup = [setup_api] begin
     b1 = f_box(LatLon(10, 20), LatLon(30, 40))
 
