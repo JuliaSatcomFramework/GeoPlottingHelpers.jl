@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.13] - 2026-08-26
 ### Changed
-- `line_plot_coords` now places its extra points by adaptive subdivision. A scattergeo plot draws each pair of points as a great circle arc. The code compares the middle of that arc against the middle of the wanted straight lat/lon line. It splits the segment only while the two are more than `:OVERSAMPLE_TOL` apart. The largest deviation is now the same everywhere, and the whole 110m border and coastline data needs 28% fewer points.
+- `line_plot_coords` now places its extra points by adaptive subdivision. A scattergeo plot draws each pair of points as a great circle arc. The code takes the middle of that arc. It splits the segment while the arc sits more than `:OVERSAMPLE_TOL` from the wanted straight lat/lon line. The tests are the ones d3-geo uses to resample a projected line. The largest gap is now the same everywhere, and the whole 110m border and coastline data needs 30% fewer points.
 
 ### Added
 - New `:OVERSAMPLE_TOL` setting. It sets the largest deviation, in degrees, that an oversampled line is allowed to have from the straight lat/lon line between two input points. It defaults to `0.01`. Set it lower when the plot is zoomed in, as the same deviation then covers more of the screen.

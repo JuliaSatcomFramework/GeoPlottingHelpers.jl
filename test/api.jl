@@ -157,44 +157,57 @@ end
     @test length(out.lat) > 100
 
     # An edge near a pole is not at a pole. Float32 input must not widen the test, as `≈` would.
-    # The border and coastline data uses Float32, so this ring must keep its oversampling.
-    @test length(oversample([(-180.0f0, 89.97f0), (180.0f0, 89.98f0)]).lat) > 100
+    # The border and coastline data uses Float32, so this ring must keep its oversampling. A ring
+    # that the pole test swallows holds 3 points: the two input points and the closing point.
+    @test length(oversample([(-180.0f0, 89.97f0), (180.0f0, 89.98f0)]).lat) > 3
 end
 
 @testitem "oversampling stays within the tolerance" setup = [setup_api] begin
-    using GeoPlottingHelpers: lonlat_to_xyz, xyz_to_lonlat, normalize
+    using GeoPlottingHelpers: line_plot_coords, slerp
+
+    # Distance in degrees from `q` to the straight lat/lon line between `p1` and `p2`.
+    function dist_to_segment(q, p1, p2)
+        vlon, vlat = p2 .- p1
+        wlon, wlat = q .- p1
+        d2 = vlon * vlon + vlat * vlat
+        t = d2 == 0 ? 0.0 : clamp((wlon * vlon + wlat * vlat) / d2, 0, 1)
+        return hypot(wlon - t * vlon, wlat - t * vlat)
+    end
 
     #=
-    A scattergeo plot draws each pair of consecutive points as a great circle arc. The arc and the
-    wanted straight lat/lon line differ most at the middle of the pair, so the code measures the
-    gap there. The largest gap over the whole output is what `:OVERSAMPLE_TOL` bounds.
+    The largest gap between the line a scattergeo plot draws and the straight lat/lon line that the
+    two input points ask for. The plot draws each pair of output points as a great circle arc, so
+    the code walks every arc and takes the distance of each sample to the wanted line.
     =#
-    function max_deviation(out)
-        pts = collect(zip(out.lon, out.lat))
+    function true_gap(p1, p2; tol)
+        pts = with_settings(:OVERSAMPLE_LINES => :NORMAL, :OVERSAMPLE_TOL => tol) do
+            push!(line_plot_coords(p1, p2), p2)
+        end
         maximum(1:length(pts)-1; init=0.0) do i
-            p1, p2 = pts[i], pts[i+1]
-            glon, glat = xyz_to_lonlat(normalize(lonlat_to_xyz(p1) .+ lonlat_to_xyz(p2)))
-            mlon, mlat = (p1 .+ p2) ./ 2
-            hypot(mod(glon - mlon + 180, 360) - 180, glat - mlat)
+            maximum(k -> dist_to_segment(slerp(pts[i], pts[i+1], k / 16), p1, p2), 0:16)
         end
     end
-    oversample(pts; tol) = with_settings(:OVERSAMPLE_LINES => :NORMAL, :INSERT_NAN => false,
-        :CLOSE_VECTORS => true, :OVERSAMPLE_TOL => tol) do
-        extract_latlon_coords(Float64, pts)
-    end
 
-    shapes = [
-        [(20.0, 10.0), (40.0, 10.0), (40.0, 30.0), (20.0, 30.0)],   # a plain box
-        [(-100.0, 40.0), (100.0, 45.0)],                            # a long diagonal
-        [(0.0, 80.0), (90.0, 80.0), (90.0, 60.0), (0.0, 60.0)],     # a box at a high latitude
-        [(-180.0, 71.5), (0.0, 71.5), (180.0, 71.5)],               # a parallel around the earth
+    segments = [
+        ((20.0, 10.0), (40.0, 10.0)),     # a plain segment
+        ((-100.0, 40.0), (100.0, 45.0)),  # a long segment at a mid latitude
+        ((0.0, 80.0), (90.0, 80.0)),      # a segment at a high latitude
+        ((-100.0, 71.5), (100.0, 71.5)),  # a long segment near a pole
+        ((0.0, -20.0), (60.0, 20.0)),     # a segment that straddles the equator
+        ((0.0, -30.0), (170.0, 10.0)),    # a long segment that straddles the equator
     ]
-    for tol in (0.05, 0.01, 0.002), shape in shapes
-        @test max_deviation(oversample(shape; tol)) <= tol
+    for tol in (0.05, 0.01, 0.002), (p1, p2) in segments
+        # The recursion bounds each split it makes, so the gap of the whole line can sit a little
+        # above the tolerance. A tenth of the tolerance covers that and the sampling of the arc.
+        @test true_gap(p1, p2; tol) <= tol * 1.1
     end
 
     # A smaller tolerance adds more points.
-    counts = [length(oversample(shapes[end]; tol).lat) for tol in (0.05, 0.01, 0.002)]
+    counts = map((0.05, 0.01, 0.002)) do tol
+        with_settings(:OVERSAMPLE_LINES => :NORMAL, :OVERSAMPLE_TOL => tol) do
+            length(line_plot_coords((-100.0, 71.5), (100.0, 71.5)))
+        end
+    end
     @test issorted(counts)
     @test counts[end] > counts[begin]
 end
