@@ -8,7 +8,7 @@ Each of these settings will control the behvior of `extract_latlon_coords!`.
   - `:NORMAL` will add artificial points only when necessary (when distance between points is too large) and will create lines that never cross the antimeridian. This is useful for example to plot Box geometries with large areas and have them still look like boxes.
   - `:SHORT` will add artificial points like per `:NORMAL` but will also make sure the line drawn between the points is the shortest one (potentially crossing the antimeridian at 180° longitude).
   - `:NONE` will not add artificial points
-- OVERSAMPLE_TOL: The largest deviation, in degrees, that an oversampled line is allowed to have from the straight lat/lon line between two input points. A smaller value adds more points. Set it lower when the plot is zoomed in, as the same deviation then covers more of the screen.
+- OVERSAMPLE_TOL: The gap, in degrees, that an oversampled line aims to keep from the straight lat/lon line between two input points. A smaller value adds more points. Set it lower when the plot is zoomed in, as the same gap then covers more of the screen. This is a target, not a bound. The method tests each split it makes rather than the whole line, so the gap of a line can sit about twice the value. Below about 1e-5 the depth cap stops the method first.
 - CLOSE_VECTORS: Specify whether to close the vector of points by repeating the first point at the end of the vector.
 - FORCE_ORIENTATION: Specify whether to force the orientation of the rings of points. This is useful as when filling polygons (with `fill="toself"`), plotly expects rings to be oriented clockwise. Possible options are:
   - `:NONE` will not force the orientation of the rings of points.
@@ -48,7 +48,7 @@ The possible keys that can be provided as settings are:
   - `:SHORT` will add artificial points like per `:NORMAL` but will also make sure the line drawn between the points is the shortest one (potentially crossing the antimeridian at 180° longitude).
   - `:NONE` will not add artificial points
 - `:PLOT_STRAIGHT_LINES => Symbol`: This is just an alias for the `:OVERSAMPLE_LINES` key and they have the same effect. Note: `:OVERSAMPLE_LINES` has higher priority if both keys are provided.
-- `:OVERSAMPLE_TOL => Real`: The largest deviation, in degrees, that an oversampled line is allowed to have from the straight lat/lon line between two input points. It defaults to `0.01`. A smaller value adds more points. Set it lower when the plot is zoomed in, as the same deviation then covers more of the screen.
+- `:OVERSAMPLE_TOL => Real`: The gap, in degrees, that an oversampled line aims to keep from the straight lat/lon line between two input points. It must be a finite positive number and defaults to `0.01`. A smaller value adds more points. Set it lower when the plot is zoomed in, as the same gap then covers more of the screen. This is a target, not a bound. The method tests each split it makes rather than the whole line, so the gap of a line can sit about twice the value. Below about `1e-5` the depth cap stops the method first.
 - `:CLOSE_VECTORS => Bool`: Specify whether to close any vector of points by repeating the first point at the end of the vector.
 - `:FORCE_ORIENTATION => Symbol`: Specify whether to force the orientation of the rings of points. This is useful as when filling polygons (with `fill="toself"`), plotly expects rings to be oriented clockwise. Possible options are:
   - `:NONE` will not force the orientation of the rings of points.
