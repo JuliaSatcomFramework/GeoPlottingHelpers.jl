@@ -25,14 +25,18 @@ jobs:
   TagBot:
     runs-on: ubuntu-latest
     steps:
-      # TagBot must not run on `GITHUB_TOKEN`. GitHub starts no workflow from an event that token
-      # wrote, so the tag would reach `documentation.yml`, whose triggers name a tag push, and start
-      # nothing. No setting lifts that. A token of a GitHub App is not `GITHUB_TOKEN`, so the tag it
-      # writes starts the documentation build.
+      # This repository tags with the TagBot GitHub App of the organisation. Every repository of the
+      # organisation moves to that app, one at a time, so that a single app tags them all and no
+      # repository keeps a key of its own for the job.
       #
       # The app belongs to the organisation rather than to a person, and this step mints a token that
       # lives one hour and reaches this repository alone. Two organisation secrets name the app:
       # `TAGBOT_APP_CLIENT_ID` and `TAGBOT_APP_KEY`, the private key of the app.
+      #
+      # The token carries one property `GITHUB_TOKEN` does not. GitHub starts no workflow from an
+      # event that `GITHUB_TOKEN` wrote, so a tag it pushes starts nothing. A tag this token pushes
+      # starts any workflow whose triggers name a tag push. This repository holds no such workflow
+      # today, as it carries its features in the README and builds no documentation.
       - uses: actions/create-github-app-token@v3
         id: token
         with:
