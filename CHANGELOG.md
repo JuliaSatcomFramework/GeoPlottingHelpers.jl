@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.1.14] - 2026-09-29
+### Changed
+- Updated compat of CoordRefSystems to `0.16 - 0.21` and of Meshes to `0.52 - 0.59`.
+
 ## [0.1.13] - 2026-08-27
 ### Changed
 - `line_plot_coords` now places its extra points by adaptive subdivision. A scattergeo plot draws each pair of points as a great circle arc. The code takes the middle of that arc. It splits the segment while the arc sits more than `:OVERSAMPLE_TOL` from the wanted straight lat/lon line. The tests are the ones d3-geo uses to resample a projected line, plus a second sample of the arc. The gap is now about the same everywhere, and the whole 110m border and coastline data needs 30% fewer points.
